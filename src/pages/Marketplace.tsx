@@ -1,122 +1,46 @@
-import React, { useState } from 'react';
+import React, {useState, useEffect} from 'react';
 import { Search, MapPin, Star, Heart, Share2, Plus, Camera, Tag } from 'lucide-react';
+import {getCategories, getLocations, getProducts} from '../lib/marketplace.queries';
+import type {Category, Location, Product} from '../types/marketplace.types';
 
 const Marketplace: React.FC = () => {
+    // State for UI interaction
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [showAddProduct, setShowAddProduct] = useState(false);
 
-  const categories = [
-    { id: 'all', name: 'All Categories' },
-    { id: 'food', name: 'Food & Beverages' },
-    { id: 'crafts', name: 'Arts & Crafts' },
-    { id: 'clothing', name: 'Clothing & Fashion' },
-    { id: 'services', name: 'Services' },
-    { id: 'agriculture', name: 'Agriculture' },
-    { id: 'beauty', name: 'Beauty & Personal Care' },
-    { id: 'electronics', name: 'Electronics & Repairs' },
-    { id: 'home', name: 'Home & Garden' }
-  ];
+    // State for data and loading
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [locations, setLocations] = useState<Location[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const locations = [
-    { id: 'all', name: 'All Locations' },
-    { id: 'soweto', name: 'Soweto' },
-    { id: 'alexandra', name: 'Alexandra' },
-    { id: 'khayelitsha', name: 'Khayelitsha' },
-    { id: 'mitchells-plain', name: 'Mitchells Plain' },
-    { id: 'mamelodi', name: 'Mamelodi' },
-    { id: 'umlazi', name: 'Umlazi' },
-    { id: 'mdantsane', name: 'Mdantsane' }
-  ];
+    // Fetch data on component mount
+    useEffect(() => {
+        const loadMarketplaceData = async () => {
+            try {
+                setIsLoading(true);
+                // Fetch all data in parallel
+                const [categoriesData, locationsData, productsData] = await Promise.all([
+                    getCategories(),
+                    getLocations(),
+                    getProducts()
+                ]);
+                setCategories(categoriesData);
+                setLocations(locationsData);
+                setProducts(productsData);
+            } catch (error) {
+                console.error("Failed to load marketplace data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-  const products = [
-    {
-      id: 1,
-      title: 'Fresh Vegetables Bundle',
-      description: 'Locally grown fresh vegetables including spinach, carrots, and potatoes',
-      price: 'R45',
-      seller: 'Nomsa\'s Garden',
-      location: 'Soweto',
-      category: 'agriculture',
-      rating: 4.8,
-      reviews: 23,
-      image: 'https://images.pexels.com/photos/1300972/pexels-photo-1300972.jpeg?auto=compress&cs=tinysrgb&w=400',
-      featured: true,
-      inStock: true
-    },
-    {
-      id: 2,
-      title: 'Handmade Beaded Jewelry',
-      description: 'Beautiful traditional beaded necklaces and bracelets, perfect for special occasions',
-      price: 'R120',
-      seller: 'Thandi\'s Crafts',
-      location: 'Alexandra',
-      category: 'crafts',
-      rating: 4.9,
-      reviews: 45,
-      image: 'https://images.pexels.com/photos/1191531/pexels-photo-1191531.jpeg?auto=compress&cs=tinysrgb&w=400',
-      featured: false,
-      inStock: true
-    },
-    {
-      id: 3,
-      title: 'Mobile Phone Repair Service',
-      description: 'Professional mobile phone repair service. Screen replacement, battery change, and more',
-      price: 'From R80',
-      seller: 'Tech Solutions',
-      location: 'Khayelitsha',
-      category: 'services',
-      rating: 4.7,
-      reviews: 67,
-      image: 'https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=400',
-      featured: true,
-      inStock: true
-    },
-    {
-      id: 4,
-      title: 'Traditional Shweshwe Dresses',
-      description: 'Custom-made traditional dresses using authentic Shweshwe fabric',
-      price: 'R350',
-      seller: 'Mama\'s Fashion',
-      location: 'Mamelodi',
-      category: 'clothing',
-      rating: 4.6,
-      reviews: 34,
-      image: 'https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=400',
-      featured: false,
-      inStock: true
-    },
-    {
-      id: 5,
-      title: 'Homemade Koeksisters',
-      description: 'Delicious traditional koeksisters made fresh daily. Perfect for special occasions',
-      price: 'R25 per dozen',
-      seller: 'Sweet Treats Bakery',
-      location: 'Mitchells Plain',
-      category: 'food',
-      rating: 4.9,
-      reviews: 89,
-      image: 'https://images.pexels.com/photos/1126728/pexels-photo-1126728.jpeg?auto=compress&cs=tinysrgb&w=400',
-      featured: true,
-      inStock: true
-    },
-    {
-      id: 6,
-      title: 'Natural Hair Care Products',
-      description: 'Organic hair care products made with natural ingredients for African hair',
-      price: 'R65',
-      seller: 'Natural Beauty Co',
-      location: 'Umlazi',
-      category: 'beauty',
-      rating: 4.8,
-      reviews: 56,
-      image: 'https://images.pexels.com/photos/3685530/pexels-photo-3685530.jpeg?auto=compress&cs=tinysrgb&w=400',
-      featured: false,
-      inStock: true
-    }
-  ];
+        void loadMarketplaceData();
+    }, []);
 
+    // Derived state for filtering and display
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -126,6 +50,16 @@ const Marketplace: React.FC = () => {
   });
 
   const featuredProducts = products.filter(product => product.featured);
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div
+                    className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="ml-4 text-gray-600">Loading Marketplace...</p>
+            </div>
+        );
+    }
 
   return (
     <div className="space-y-4 animate-fade-in px-2 sm:px-0">
@@ -342,7 +276,7 @@ const Marketplace: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm">
-                    {categories.slice(1).map(category => (
+                      {categories.filter(c => c.id !== 'all').map(category => (
                       <option key={category.id} value={category.id}>{category.name}</option>
                     ))}
                   </select>
@@ -352,7 +286,7 @@ const Marketplace: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm">
-                  {locations.slice(1).map(location => (
+                    {locations.filter(l => l.id !== 'all').map(location => (
                     <option key={location.id} value={location.id}>{location.name}</option>
                   ))}
                 </select>
