@@ -1,21 +1,24 @@
-import {supabase} from './supabase';
+// src/lib/applicationType.queries.ts
+
+import {supabase} from './supabase'; // Ensure this path is correct
 import type {Program} from '../types/applicationType.types';
-import {RealtimeChannel} from '@supabase/supabase-js';
+import type {RealtimeChannel} from '@supabase/supabase-js';
 
 /**
- * Fetches all programs with an 'active' status from the database.
- * @returns A promise that resolves to an array of Program objects.
+ * Fetches all active programs from the database, ordered by name.
+ * @returns A promise that resolves to an array of active programs.
  */
-export const fetchActivePrograms = async (): Promise<Program[]> => {
+export const getActivePrograms = async (): Promise<Program[]> => {
     const { data, error } = await supabase
         .from('programs')
         .select('*')
         .eq('status', 'active')
-        .order('created_at', { ascending: false });
+        .order('name', {ascending: true});
 
     if (error) {
-        console.error('Error loading programs:', error);
-        throw error; // Re-throw the error to be handled by the calling component.
+        console.error('Error fetching active programs:', error);
+        // Throwing the error allows the calling component to handle it in a try-catch block.
+        throw error;
     }
 
     return data || [];
@@ -23,23 +26,22 @@ export const fetchActivePrograms = async (): Promise<Program[]> => {
 
 /**
  * Sets up a real-time subscription to the 'programs' table.
- * @param callback - The function to execute when a change is detected.
- * @returns The Supabase RealtimeChannel instance.
+ * When any change occurs, it invokes the provided callback function.
+ * @param onProgramChange - The callback function to execute when a change is detected.
+ * @returns The Supabase channel subscription, which includes an `unsubscribe` method.
  */
-export const subscribeToProgramChanges = (callback: () => void): RealtimeChannel => {
-    return supabase
+export const subscribeToProgramChanges = (onProgramChange: (payload: unknown) => void): RealtimeChannel => {
+    const channel = supabase
         .channel('programs_changes')
-        .on(
-            'postgres_changes',
-            {
+        .on('postgres_changes', {
                 event: '*',
                 schema: 'public',
-                table: 'programs',
-            },
-            (payload) => {
-                console.log('Program change detected, reloading data:', payload);
-                callback();
-            }
-        )
+            table: 'programs'
+        }, (payload) => {
+            console.log('Program change detected via subscription:', payload);
+            onProgramChange(payload);
+        })
         .subscribe();
+
+    return channel;
 };
