@@ -202,20 +202,6 @@ const CreateAccount: React.FC = () => {
               </button>
             </div>
           </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500 mb-4">Or continue with</p>
-            <div className="space-y-2">
-              <button className="w-full py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                <span>🔍</span>
-                <span>Continue with Google</span>
-              </button>
-              <button className="w-full py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
-                <span>🍎</span>
-                <span>Continue with Apple</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -400,7 +400,7 @@ const CreateAccountWithValidation: React.FC = () => {
                                     Don't have an application reference number?
                                 </p>
                                 <button
-                                    onClick={() => navigate('/register/business')}
+                                    onClick={() => navigate('/register/account')}
                                     className="text-primary-600 hover:text-primary-700 font-medium text-sm"
                                 >
                                     Submit Business Application First
